@@ -1,6 +1,8 @@
 package com.example.kafkaAmitTest;
 
 import java.util.Properties;
+
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -37,12 +39,16 @@ public class kafkaBasicStringRecordProducer {
     }
 
     public void sendMessages(String MesasgeKeyVal) {
-        Future<RecordMetadata> sentRecord = producer.send(new ProducerRecord<String, String>(TOPIC_NAME, MesasgeKeyVal, MesasgeKeyVal));
-        try {
-            RecordMetadata recordMetadata = sentRecord.get();
-            System.out.println("Producing a record: " + recordMetadata.toString());
-        } catch (Exception e) {
-            System.out.println("Error sending record to kafka");
-        }
+        ProducerRecord record = new ProducerRecord<String, String>(TOPIC_NAME, MesasgeKeyVal, MesasgeKeyVal);
+        Future<RecordMetadata> sentRecord = producer.send(record,
+        new Callback() {
+            public void onCompletion(RecordMetadata metadata, Exception e) {
+                if(e != null) {
+                    e.printStackTrace();
+                } else {
+                    System.out.println("The offset of the record we just sent is: " + metadata.toString());
+                }
+            }
+        });
     }
 }
