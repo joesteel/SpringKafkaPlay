@@ -27,13 +27,19 @@ public class kafkaBasicStringRecordProducer {
 
     public void sendMessages(int numMessages) {
         IntStream.range(0, numMessages).forEach(n -> {
-                    Future<RecordMetadata> sentRecord = producer.send(new ProducerRecord<String, String>(TOPIC_NAME, Integer.toString(n), Integer.toString(n)));
-                    try {
-                        RecordMetadata recordMetadata = sentRecord.get();
-                        System.out.println("Producing a record: " + recordMetadata.toString());
-                    } catch (Exception e) {
-                        System.out.println("Error sending record to kafka");
-                    }
+            ProducerRecord<String, String> record = new ProducerRecord<String, String>(TOPIC_NAME, Integer.toString(n), Integer.toString(n));
+                    Future<RecordMetadata> sentRecord = producer.send(record,
+                            new Callback() {
+                                @Override
+                                public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+                                    if(e != null) {
+                                        e.printStackTrace();
+                                    } else {
+                                        System.out.println("The offset of the record we just sent is: " + recordMetadata.toString());
+                                    }
+                                }
+                            }
+                    );
                 }
         );
     }
